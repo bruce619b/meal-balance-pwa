@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="每日 150 元刷餐費、一般餐廳照標價、7-11 85 折，自動計算剩餘額度與 7-11 可湊標價。" />
+
+  <title>刷餐計算機</title>
+
+  <!-- PWA / iPhone Home Screen -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="刷餐計算機" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <style>
+    :root {
+      --bg: #eefbf8;
+      --card: rgba(255, 255, 255, 0.86);
+      --card-strong: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #0f766e;
+      --brand-2: #14b8a6;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --ok-bg: #dcfce7;
+      --ok: #15803d;
+      --line: rgba(15, 23, 42, 0.10);
+      --shadow: 0 22px 60px rgba(15, 118, 110, 0.18);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.30), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.22), transparent 30rem),
+        var(--bg);
+    }
+
+    body {
+      padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 460px);
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 18px 2px 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(15, 118, 110, 0.18);
+      background: rgba(255, 255, 255, 0.62);
+      border-radius: 999px;
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: clamp(30px, 9vw, 42px);
+      line-height: 1.06;
+      letter-spacing: -0.05em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.70);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section:first-child {
+      border-top: 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .date {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .prefix,
+    .suffix {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .prefix {
+      left: 14px;
+    }
+
+    .suffix {
+      right: 14px;
+    }
+
+    input {
+      width: 100%;
+      height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      outline: 0;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      padding: 0 48px 0 38px;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    input:focus {
+      border-color: rgba(20, 184, 166, 0.72);
+      box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+    }
+
+    .input-wrap.discount input {
+      padding-left: 16px;
+      padding-right: 42px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      border: 1px solid rgba(15, 118, 110, 0.16);
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--brand);
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .answer {
+      margin-top: 2px;
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      color: white;
+      box-shadow: 0 18px 34px rgba(15, 118, 110, 0.25);
+    }
+
+    .answer .caption {
+      font-size: 14px;
+      opacity: 0.85;
+      font-weight: 800;
+    }
+
+    .answer .big {
+      margin-top: 4px;
+      font-size: clamp(44px, 15vw, 70px);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.07em;
+    }
+
+    .answer .hint {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.88;
+    }
+
+    .cards {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.70);
+    }
+
+    .card .name {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .card .value {
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .status.ok {
+      color: var(--ok);
+      background: var(--ok-bg);
+    }
+
+    .status.warn {
+      color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      min-height: 48px;
+      border: 0;
+      border-radius: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: var(--brand);
+      color: white;
+    }
+
+    .btn.secondary {
+      background: rgba(15, 23, 42, 0.07);
+      color: var(--text);
+    }
+
+    .note {
+      padding: 14px 18px 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .install-tip {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px dashed rgba(15, 118, 110, 0.28);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #071817;
+        --card: rgba(15, 23, 42, 0.80);
+        --card-strong: #111827;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --line: rgba(255, 255, 255, 0.11);
+        --shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+      }
+
+      input,
+      .card,
+      .chip,
+      .badge,
+      .install-tip {
+        background: rgba(15, 23, 42, 0.72);
+      }
+
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.10);
+        color: var(--text);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="badge">🍱 每日刷餐費計算</div>
+      <h1>刷餐計算機</h1>
+      <p>一般餐廳照標價扣款；7-11 依標價打 85 折。輸入今天便當金額，就會自動算出 7-11 最多可以湊多少標價才不用額外付款。</p>
+    </section>
+
+    <section class="panel">
+      <div class="section">
+        <div class="section-title">
+          <h2>今日設定</h2>
+          <div class="date" id="todayText">今天</div>
+        </div>
+
+        <div class="grid">
+          <label>
+            每日刷餐額度
+            <span class="input-wrap">
+              <span class="prefix">$</span>
+              <input id="allowance" inputmode="decimal" autocomplete="off" placeholder="150" />
+              <span class="suffix">元</span>
+            </span>
+          </label>
+
+          <label>
+            7-11 折扣
+            <span class="input-wrap discount">
+              <input id="discount" inputmode="decimal" autocomplete="off" placeholder="85" />
+              <span class="suffix">折</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <h2>今天已刷</h2>
+          <div class="date">每日自動重置</div>
+        </div>
+
+        <div class="grid">
+          <label>
+            一般餐廳已刷金額
+            <span class="input-wrap">
+              <span class="prefix">$</span>
+              <input id="normal" inputmode="decimal" autocomplete="off" placeholder="例如 90" />
+              <span class="suffix">元</span>
+            </span>
+          </label>
+
+          <div class="chips" aria-label="常用餐費快速輸入">
+            <button class="chip" data-normal="80">便當 80</button>
+            <button class="chip" data-normal="90">便當 90</button>
+            <button class="chip" data-normal="100">便當 100</button>
+            <button class="chip" data-normal="110">便當 110</button>
+            <button class="chip" data-normal="120">便當 120</button>
+          </div>
+
+          <label>
+            7-11 標價總金額
+            <span class="input-wrap">
+              <span class="prefix">$</span>
+              <input id="seven" inputmode="decimal" autocomplete="off" placeholder="例如 70" />
+              <span class="suffix">元</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="answer">
+          <div class="caption">7-11 最多可買標價</div>
+          <div class="big" id="maxSeven">$0</div>
+          <div class="hint" id="maxHint">輸入一般餐廳已刷金額後，這裡會顯示不需額外付款的 7-11 標價上限。</div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="name">一般餐廳後剩餘</div>
+            <div class="value" id="remainingBefore">$0</div>
+          </div>
+          <div class="card">
+            <div class="name">7-11 折後扣款</div>
+            <div class="value" id="sevenDiscounted">$0</div>
+          </div>
+          <div class="card">
+            <div class="name">今日總扣款</div>
+            <div class="value" id="totalUsed">$0</div>
+          </div>
+          <div class="card">
+            <div class="name">刷完後剩餘</div>
+            <div class="value" id="finalRemaining">$0</div>
+          </div>
+        </div>
+
+        <div class="status ok" id="statusText">目前不需要額外付款。</div>
+
+        <div class="actions">
+          <button class="btn secondary" id="clearSeven">清除 7-11</button>
+          <button class="btn primary" id="resetToday">清除今日</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="install-tip">
+      iPhone 加到桌面：用 Safari 打開這個網頁 → 分享 → 加入主畫面 → 開啟「Open as Web App」→ 新增。
+    </div>
+
+    <p class="note">
+      資料只存在你的手機瀏覽器 localStorage，不會上傳。每日重置會保留「每日刷餐額度」與「折扣」，只清除今日刷餐輸入。
+    </p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "meal-balance-pwa-v1";
+    const $ = (id) => document.getElementById(id);
+
+    const fields = {
+      allowance: $("allowance"),
+      discount: $("discount"),
+      normal: $("normal"),
+      seven: $("seven")
+    };
+
+    const output = {
+      todayText: $("todayText"),
+      maxSeven: $("maxSeven"),
+      maxHint: $("maxHint"),
+      remainingBefore: $("remainingBefore"),
+      sevenDiscounted: $("sevenDiscounted"),
+      totalUsed: $("totalUsed"),
+      finalRemaining: $("finalRemaining"),
+      statusText: $("statusText")
+    };
+
+    const defaultState = {
+      allowance: "150",
+      discount: "85",
+      normal: "",
+      seven: "",
+      lastDate: todayKey()
+    };
+
+    function todayKey() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function displayDate() {
+      const now = new Date();
+      return new Intl.DateTimeFormat("zh-Hant-TW", {
+        month: "2-digit",
+        day: "2-digit",
+        weekday: "short"
+      }).format(now);
+    }
+
+    function readState() {
+      try {
+        return { ...defaultState, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+      } catch {
+        return { ...defaultState };
+      }
+    }
+
+    function writeState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function sanitizeNumberText(value) {
+      return String(value)
+        .replace(/[^\d.]/g, "")
+        .replace(/(\..*)\./g, "$1");
+    }
+
+    function number(value, fallback = 0) {
+      const n = Number.parseFloat(value);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function money(value, digits = 1) {
+      const n = Math.max(0, value);
+      const rounded = n.toFixed(digits);
+      return "$" + rounded.replace(/\.0$/, "");
+    }
+
+    function load() {
+      let state = readState();
+
+      if (state.lastDate !== todayKey()) {
+        state.normal = "";
+        state.seven = "";
+        state.lastDate = todayKey();
+        writeState(state);
+      }
+
+      fields.allowance.value = state.allowance;
+      fields.discount.value = state.discount;
+      fields.normal.value = state.normal;
+      fields.seven.value = state.seven;
+
+      output.todayText.textContent = displayDate();
+      calculate();
+    }
+
+    function saveFromFields() {
+      const state = readState();
+      state.allowance = fields.allowance.value || "150";
+      state.discount = fields.discount.value || "85";
+      state.normal = fields.normal.value;
+      state.seven = fields.seven.value;
+      state.lastDate = todayKey();
+      writeState(state);
+    }
+
+    function calculate() {
+      const allowance = number(fields.allowance.value, 150);
+      const discount = Math.min(Math.max(number(fields.discount.value, 85), 1), 100) / 100;
+      const normal = number(fields.normal.value, 0);
+      const sevenList = number(fields.seven.value, 0);
+
+      const remainingBefore = Math.max(allowance - normal, 0);
+      const maxSevenList = discount > 0 ? remainingBefore / discount : 0;
+      const maxSevenSafe = Math.floor(maxSevenList);
+      const sevenDiscounted = sevenList * discount;
+      const totalUsed = normal + sevenDiscounted;
+      const outOfPocket = Math.max(totalUsed - allowance, 0);
+      const finalRemaining = Math.max(allowance - totalUsed, 0);
+
+      output.maxSeven.textContent = money(maxSevenSafe, 0);
+      output.remainingBefore.textContent = money(remainingBefore, 1);
+      output.sevenDiscounted.textContent = money(sevenDiscounted, 1);
+      output.totalUsed.textContent = money(totalUsed, 1);
+      output.finalRemaining.textContent = money(finalRemaining, 1);
+
+      if (normal >= allowance) {
+        output.maxHint.textContent = "一般餐廳已經用完今日額度，7-11 再買就會自付。";
+      } else {
+        output.maxHint.textContent = `剩餘 ${money(remainingBefore, 1)}，7-11 標價抓 ${money(maxSevenSafe, 0)} 以內最保守。`;
+      }
+
+      if (outOfPocket > 0) {
+        output.statusText.className = "status warn";
+        output.statusText.textContent = `會額外付款 ${money(outOfPocket, 1)}。建議 7-11 標價控制在 ${money(maxSevenSafe, 0)} 以內。`;
+      } else {
+        output.statusText.className = "status ok";
+        output.statusText.textContent = sevenList > 0
+          ? `安全，這筆 7-11 不需要額外付款，刷完還剩 ${money(finalRemaining, 1)}。`
+          : "目前不需要額外付款。";
+      }
+    }
+
+    Object.values(fields).forEach((input) => {
+      input.addEventListener("input", () => {
+        const cleaned = sanitizeNumberText(input.value);
+        if (input.value !== cleaned) input.value = cleaned;
+        saveFromFields();
+        calculate();
+      });
+    });
+
+    document.querySelectorAll("[data-normal]").forEach((button) => {
+      button.addEventListener("click", () => {
+        fields.normal.value = button.dataset.normal;
+        saveFromFields();
+        calculate();
+      });
+    });
+
+    $("clearSeven").addEventListener("click", () => {
+      fields.seven.value = "";
+      saveFromFields();
+      calculate();
+    });
+
+    $("resetToday").addEventListener("click", () => {
+      fields.normal.value = "";
+      fields.seven.value = "";
+      const state = readState();
+      state.normal = "";
+      state.seven = "";
+      state.lastDate = todayKey();
+      writeState(state);
+      calculate();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) load();
+    });
+
+    window.addEventListener("pageshow", load);
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
