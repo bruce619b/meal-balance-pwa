@@ -521,6 +521,11 @@
             <div class="name">7-11 標價總和</div>
             <div class="value" id="sevenListTotal">$0</div>
           </div>
+
+          <div class="seven-total">
+            <div class="name">7-11 標價折扣後總和</div>
+            <div class="value" id="sevenDiscountedInline">$0</div>
+          </div>
         </div>
       </div>
 
@@ -596,6 +601,7 @@
       maxHint: $("maxHint"),
       remainingBefore: $("remainingBefore"),
       sevenListTotal: $("sevenListTotal"),
+      sevenDiscountedInline: $("sevenDiscountedInline"),
       sevenListTotalCard: $("sevenListTotalCard"),
       sevenDiscounted: $("sevenDiscounted"),
       totalUsed: $("totalUsed"),
@@ -734,6 +740,7 @@
       output.maxSeven.textContent = money(maxSevenSafe, 0);
       output.remainingBefore.textContent = money(remainingBefore, 1);
       output.sevenListTotal.textContent = money(sevenList, 0);
+      output.sevenDiscountedInline.textContent = money(sevenDiscounted, 1);
       output.sevenListTotalCard.textContent = money(sevenList, 0);
       output.sevenDiscounted.textContent = money(sevenDiscounted, 1);
       output.totalUsed.textContent = money(totalUsed, 1);
