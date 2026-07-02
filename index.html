@@ -340,6 +340,53 @@
       line-height: 1.5;
     }
 
+
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .item-grid label {
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .item-grid .input-wrap input {
+      height: 48px;
+      font-size: 19px;
+      border-radius: 16px;
+      padding-left: 34px;
+      padding-right: 34px;
+    }
+
+    .seven-total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(15, 118, 110, 0.09);
+      border: 1px solid rgba(15, 118, 110, 0.13);
+    }
+
+    .seven-total .name {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .seven-total .value {
+      color: var(--brand);
+      font-size: 24px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #071817;
@@ -359,6 +406,10 @@
         background: rgba(15, 23, 42, 0.72);
       }
 
+      .seven-total {
+        background: rgba(20, 184, 166, 0.12);
+      }
+
       .btn.secondary {
         background: rgba(255, 255, 255, 0.10);
         color: var(--text);
@@ -372,7 +423,7 @@
     <section class="hero">
       <div class="badge">🍱 每日刷餐費計算</div>
       <h1>刷餐計算機</h1>
-      <p>一般餐廳照標價扣款；7-11 依標價打 85 折。輸入今天便當金額，就會自動算出 7-11 最多可以湊多少標價才不用額外付款。</p>
+      <p>一般餐廳照標價扣款；7-11 可分 5 項輸入商品標價，系統會自動加總後打 85 折，幫你算出會不會額外付款。</p>
     </section>
 
     <section class="panel">
@@ -419,21 +470,57 @@
           </label>
 
           <div class="chips" aria-label="常用餐費快速輸入">
-            <button class="chip" data-normal="80">便當 80</button>
-            <button class="chip" data-normal="90">便當 90</button>
-            <button class="chip" data-normal="100">便當 100</button>
-            <button class="chip" data-normal="110">便當 110</button>
-            <button class="chip" data-normal="120">便當 120</button>
+            <button class="chip" data-normal="90">自助餐 90</button>
+            <button class="chip" data-normal="110">自助餐 110</button>
+            <button class="chip" data-normal="125">自助餐 125</button>
+            <button class="chip" data-normal="140">自助餐 140</button>
           </div>
 
           <label>
-            7-11 標價總金額
-            <span class="input-wrap">
-              <span class="prefix">$</span>
-              <input id="seven" inputmode="decimal" autocomplete="off" placeholder="例如 70" />
-              <span class="suffix">元</span>
-            </span>
+            7-11 商品標價明細
+            <div class="item-grid">
+              <label>商品 1
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven1" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
+              <label>商品 2
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven2" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
+              <label>商品 3
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven3" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
+              <label>商品 4
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven4" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
+              <label>商品 5
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven5" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
+            </div>
           </label>
+
+          <div class="seven-total">
+            <div class="name">7-11 標價總和</div>
+            <div class="value" id="sevenListTotal">$0</div>
+          </div>
         </div>
       </div>
 
@@ -448,6 +535,10 @@
           <div class="card">
             <div class="name">一般餐廳後剩餘</div>
             <div class="value" id="remainingBefore">$0</div>
+          </div>
+          <div class="card">
+            <div class="name">7-11 標價總和</div>
+            <div class="value" id="sevenListTotalCard">$0</div>
           </div>
           <div class="card">
             <div class="name">7-11 折後扣款</div>
@@ -482,21 +573,30 @@
   </main>
 
   <script>
-    const STORAGE_KEY = "meal-balance-pwa-v1";
+    const STORAGE_KEY = "meal-balance-pwa-v2";
+    const OLD_STORAGE_KEY = "meal-balance-pwa-v1";
     const $ = (id) => document.getElementById(id);
 
     const fields = {
       allowance: $("allowance"),
       discount: $("discount"),
       normal: $("normal"),
-      seven: $("seven")
+      seven1: $("seven1"),
+      seven2: $("seven2"),
+      seven3: $("seven3"),
+      seven4: $("seven4"),
+      seven5: $("seven5")
     };
+
+    const sevenFields = [fields.seven1, fields.seven2, fields.seven3, fields.seven4, fields.seven5];
 
     const output = {
       todayText: $("todayText"),
       maxSeven: $("maxSeven"),
       maxHint: $("maxHint"),
       remainingBefore: $("remainingBefore"),
+      sevenListTotal: $("sevenListTotal"),
+      sevenListTotalCard: $("sevenListTotalCard"),
       sevenDiscounted: $("sevenDiscounted"),
       totalUsed: $("totalUsed"),
       finalRemaining: $("finalRemaining"),
@@ -507,7 +607,11 @@
       allowance: "150",
       discount: "85",
       normal: "",
-      seven: "",
+      seven1: "",
+      seven2: "",
+      seven3: "",
+      seven4: "",
+      seven5: "",
       lastDate: todayKey()
     };
 
@@ -528,12 +632,23 @@
       }).format(now);
     }
 
-    function readState() {
+    function safeJson(key) {
       try {
-        return { ...defaultState, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+        return JSON.parse(localStorage.getItem(key) || "{}");
       } catch {
-        return { ...defaultState };
+        return {};
       }
+    }
+
+    function readState() {
+      const oldState = safeJson(OLD_STORAGE_KEY);
+      const state = { ...defaultState, ...oldState, ...safeJson(STORAGE_KEY) };
+
+      if (!state.seven1 && oldState.seven) {
+        state.seven1 = oldState.seven;
+      }
+
+      return state;
     }
 
     function writeState(state) {
@@ -562,7 +677,11 @@
 
       if (state.lastDate !== todayKey()) {
         state.normal = "";
-        state.seven = "";
+        state.seven1 = "";
+        state.seven2 = "";
+        state.seven3 = "";
+        state.seven4 = "";
+        state.seven5 = "";
         state.lastDate = todayKey();
         writeState(state);
       }
@@ -570,7 +689,11 @@
       fields.allowance.value = state.allowance;
       fields.discount.value = state.discount;
       fields.normal.value = state.normal;
-      fields.seven.value = state.seven;
+      fields.seven1.value = state.seven1;
+      fields.seven2.value = state.seven2;
+      fields.seven3.value = state.seven3;
+      fields.seven4.value = state.seven4;
+      fields.seven5.value = state.seven5;
 
       output.todayText.textContent = displayDate();
       calculate();
@@ -581,16 +704,24 @@
       state.allowance = fields.allowance.value || "150";
       state.discount = fields.discount.value || "85";
       state.normal = fields.normal.value;
-      state.seven = fields.seven.value;
+      state.seven1 = fields.seven1.value;
+      state.seven2 = fields.seven2.value;
+      state.seven3 = fields.seven3.value;
+      state.seven4 = fields.seven4.value;
+      state.seven5 = fields.seven5.value;
       state.lastDate = todayKey();
       writeState(state);
+    }
+
+    function sevenListTotal() {
+      return sevenFields.reduce((sum, input) => sum + number(input.value, 0), 0);
     }
 
     function calculate() {
       const allowance = number(fields.allowance.value, 150);
       const discount = Math.min(Math.max(number(fields.discount.value, 85), 1), 100) / 100;
       const normal = number(fields.normal.value, 0);
-      const sevenList = number(fields.seven.value, 0);
+      const sevenList = sevenListTotal();
 
       const remainingBefore = Math.max(allowance - normal, 0);
       const maxSevenList = discount > 0 ? remainingBefore / discount : 0;
@@ -602,6 +733,8 @@
 
       output.maxSeven.textContent = money(maxSevenSafe, 0);
       output.remainingBefore.textContent = money(remainingBefore, 1);
+      output.sevenListTotal.textContent = money(sevenList, 0);
+      output.sevenListTotalCard.textContent = money(sevenList, 0);
       output.sevenDiscounted.textContent = money(sevenDiscounted, 1);
       output.totalUsed.textContent = money(totalUsed, 1);
       output.finalRemaining.textContent = money(finalRemaining, 1);
@@ -614,11 +747,11 @@
 
       if (outOfPocket > 0) {
         output.statusText.className = "status warn";
-        output.statusText.textContent = `會額外付款 ${money(outOfPocket, 1)}。建議 7-11 標價控制在 ${money(maxSevenSafe, 0)} 以內。`;
+        output.statusText.textContent = `會額外付款 ${money(outOfPocket, 1)}。目前 7-11 標價總和 ${money(sevenList, 0)}，建議控制在 ${money(maxSevenSafe, 0)} 以內。`;
       } else {
         output.statusText.className = "status ok";
         output.statusText.textContent = sevenList > 0
-          ? `安全，這筆 7-11 不需要額外付款，刷完還剩 ${money(finalRemaining, 1)}。`
+          ? `安全，7-11 標價總和 ${money(sevenList, 0)} 不需要額外付款，刷完還剩 ${money(finalRemaining, 1)}。`
           : "目前不需要額外付款。";
       }
     }
@@ -641,17 +774,21 @@
     });
 
     $("clearSeven").addEventListener("click", () => {
-      fields.seven.value = "";
+      sevenFields.forEach((input) => input.value = "");
       saveFromFields();
       calculate();
     });
 
     $("resetToday").addEventListener("click", () => {
       fields.normal.value = "";
-      fields.seven.value = "";
+      sevenFields.forEach((input) => input.value = "");
       const state = readState();
       state.normal = "";
-      state.seven = "";
+      state.seven1 = "";
+      state.seven2 = "";
+      state.seven3 = "";
+      state.seven4 = "";
+      state.seven5 = "";
       state.lastDate = todayKey();
       writeState(state);
       calculate();

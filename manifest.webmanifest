@@ -1,7 +1,7 @@
 {
   "name": "刷餐計算機",
   "short_name": "刷餐",
-  "description": "每日刷餐費、7-11 85 折標價反推計算機",
+  "description": "每日刷餐費、7-11 多品項 85 折計算機",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
