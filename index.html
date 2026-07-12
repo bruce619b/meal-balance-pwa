@@ -568,18 +568,18 @@
                   <span class="suffix">元</span>
                 </span>
               </label>
+
+              <label>
+                商品 6
+                <span class="input-wrap">
+                  <span class="prefix">$</span>
+                  <input class="seven-item" id="seven6" inputmode="decimal" autocomplete="off" placeholder="0" />
+                  <span class="suffix">元</span>
+                </span>
+              </label>
             </div>
           </label>
 
-          <div class="seven-total">
-            <div class="name">7-11 標價總和</div>
-            <div class="value" id="sevenListTotal">$0</div>
-          </div>
-
-          <div class="seven-total">
-            <div class="name">7-11 標價折扣後總和</div>
-            <div class="value" id="sevenDiscountedInline">$0</div>
-          </div>
         </div>
       </div>
 
@@ -648,10 +648,11 @@
       seven2: $("seven2"),
       seven3: $("seven3"),
       seven4: $("seven4"),
-      seven5: $("seven5")
+      seven5: $("seven5"),
+      seven6: $("seven6")
     };
 
-    const sevenFields = [fields.seven1, fields.seven2, fields.seven3, fields.seven4, fields.seven5];
+    const sevenFields = [fields.seven1, fields.seven2, fields.seven3, fields.seven4, fields.seven5, fields.seven6];
 
     const output = {
       todayText: $("todayText"),
@@ -673,6 +674,7 @@
       seven3: "",
       seven4: "",
       seven5: "",
+      seven6: "",
       lastDate: todayKey()
     };
 
@@ -743,6 +745,7 @@
         state.seven3 = "";
         state.seven4 = "";
         state.seven5 = "";
+        state.seven6 = "";
         state.lastDate = todayKey();
         writeState(state);
       }
@@ -755,6 +758,7 @@
       fields.seven3.value = state.seven3;
       fields.seven4.value = state.seven4;
       fields.seven5.value = state.seven5;
+      fields.seven6.value = state.seven6;
 
       output.todayText.textContent = displayDate();
       calculate();
@@ -770,6 +774,7 @@
       state.seven3 = fields.seven3.value;
       state.seven4 = fields.seven4.value;
       state.seven5 = fields.seven5.value;
+      state.seven6 = fields.seven6.value;
       state.lastDate = todayKey();
       writeState(state);
     }
@@ -859,6 +864,7 @@
       state.seven3 = "";
       state.seven4 = "";
       state.seven5 = "";
+      state.seven6 = "";
       state.lastDate = todayKey();
       writeState(state);
       calculate();
