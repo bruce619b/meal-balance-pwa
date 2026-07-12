@@ -531,9 +531,9 @@
 
       <div class="section">
         <div class="answer">
-          <div class="caption">7-11 最多可買標價</div>
+          <div class="caption">7-11 標價還可買</div>
           <div class="big" id="maxSeven">$0</div>
-          <div class="hint" id="maxHint">輸入一般餐廳已刷金額後，這裡會顯示不需額外付款的 7-11 標價上限。</div>
+          <div class="hint" id="maxHint">輸入餐費與 7-11 商品後，這裡會即時顯示剩下還能購買的標價。</div>
         </div>
 
         <div class="cards">
@@ -732,12 +732,14 @@
       const remainingBefore = Math.max(allowance - normal, 0);
       const maxSevenList = discount > 0 ? remainingBefore / discount : 0;
       const maxSevenSafe = Math.floor(maxSevenList);
+      const remainingSevenList = Math.max(Math.floor(maxSevenList - sevenList), 0);
+      const exceededSevenList = Math.max(sevenList - maxSevenList, 0);
       const sevenDiscounted = sevenList * discount;
       const totalUsed = normal + sevenDiscounted;
       const outOfPocket = Math.max(totalUsed - allowance, 0);
       const finalRemaining = Math.max(allowance - totalUsed, 0);
 
-      output.maxSeven.textContent = money(maxSevenSafe, 0);
+      output.maxSeven.textContent = money(remainingSevenList, 0);
       output.remainingBefore.textContent = money(remainingBefore, 1);
       output.sevenListTotal.textContent = money(sevenList, 0);
       output.sevenDiscountedInline.textContent = money(sevenDiscounted, 1);
@@ -748,8 +750,12 @@
 
       if (normal >= allowance) {
         output.maxHint.textContent = "一般餐廳已經用完今日額度，7-11 再買就會自付。";
+      } else if (exceededSevenList > 0) {
+        output.maxHint.textContent = `目前 7-11 標價已超出安全上限約 ${money(exceededSevenList, 1)}。`;
+      } else if (sevenList > 0) {
+        output.maxHint.textContent = `已輸入 ${money(sevenList, 0)}，原本可買 ${money(maxSevenSafe, 0)}，目前還可買 ${money(remainingSevenList, 0)}。`;
       } else {
-        output.maxHint.textContent = `剩餘 ${money(remainingBefore, 1)}，7-11 標價抓 ${money(maxSevenSafe, 0)} 以內最保守。`;
+        output.maxHint.textContent = `目前最多可買 ${money(maxSevenSafe, 0)} 的 7-11 標價。`;
       }
 
       if (outOfPocket > 0) {
