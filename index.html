@@ -531,7 +531,7 @@
 
       <div class="section">
         <div class="answer">
-          <div class="caption">7-11 標價還可買</div>
+          <div class="caption">7-11 折後剩餘可買標價</div>
           <div class="big" id="maxSeven">$0</div>
           <div class="hint" id="maxHint">輸入餐費與 7-11 商品後，這裡會即時顯示剩下還能購買的標價。</div>
         </div>
@@ -732,11 +732,16 @@
       const remainingBefore = Math.max(allowance - normal, 0);
       const maxSevenList = discount > 0 ? remainingBefore / discount : 0;
       const maxSevenSafe = Math.floor(maxSevenList);
-      const remainingSevenList = Math.max(Math.floor(maxSevenList - sevenList), 0);
-      const exceededSevenList = Math.max(sevenList - maxSevenList, 0);
       const sevenDiscounted = sevenList * discount;
+      const remainingAllowanceAfterSeven = Math.max(remainingBefore - sevenDiscounted, 0);
+      const remainingSevenList = discount > 0
+        ? Math.floor(remainingAllowanceAfterSeven / discount)
+        : 0;
       const totalUsed = normal + sevenDiscounted;
       const outOfPocket = Math.max(totalUsed - allowance, 0);
+      const exceededSevenList = outOfPocket > 0 && discount > 0
+        ? outOfPocket / discount
+        : 0;
       const finalRemaining = Math.max(allowance - totalUsed, 0);
 
       output.maxSeven.textContent = money(remainingSevenList, 0);
@@ -750,12 +755,12 @@
 
       if (normal >= allowance) {
         output.maxHint.textContent = "一般餐廳已經用完今日額度，7-11 再買就會自付。";
-      } else if (exceededSevenList > 0) {
-        output.maxHint.textContent = `目前 7-11 標價已超出安全上限約 ${money(exceededSevenList, 1)}。`;
+      } else if (outOfPocket > 0) {
+        output.maxHint.textContent = `已輸入標價 ${money(sevenList, 0)}，折後扣款 ${money(sevenDiscounted, 1)}，目前已超出餐費 ${money(outOfPocket, 1)}。`;
       } else if (sevenList > 0) {
-        output.maxHint.textContent = `已輸入 ${money(sevenList, 0)}，原本可買 ${money(maxSevenSafe, 0)}，目前還可買 ${money(remainingSevenList, 0)}。`;
+        output.maxHint.textContent = `已輸入標價 ${money(sevenList, 0)}，折後扣款 ${money(sevenDiscounted, 1)}，剩餘餐費 ${money(finalRemaining, 1)}，還可買標價 ${money(remainingSevenList, 0)}。`;
       } else {
-        output.maxHint.textContent = `目前最多可買 ${money(maxSevenSafe, 0)} 的 7-11 標價。`;
+        output.maxHint.textContent = `剩餘餐費 ${money(remainingBefore, 1)}，目前最多可買 7-11 標價 ${money(maxSevenSafe, 0)}。`;
       }
 
       if (outOfPocket > 0) {
