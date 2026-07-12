@@ -247,6 +247,51 @@
       opacity: 0.88;
     }
 
+    .answer-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .answer-detail {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .answer-detail .name {
+      font-size: 12px;
+      line-height: 1.35;
+      opacity: 0.78;
+      font-weight: 800;
+    }
+
+    .answer-detail .value {
+      margin-top: 4px;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .answer-status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ok);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 900;
+    }
+
+    .answer-status.warn {
+      color: var(--danger);
+      background: rgba(255, 255, 255, 0.94);
+    }
+
     .cards {
       display: grid;
       gap: 10px;
@@ -531,9 +576,22 @@
 
       <div class="section">
         <div class="answer">
-          <div class="caption">7-11 折後剩餘可買標價</div>
+          <div class="caption">7-11 還可買標價</div>
           <div class="big" id="maxSeven">$0</div>
           <div class="hint" id="maxHint">輸入餐費與 7-11 商品後，這裡會即時顯示剩下還能購買的標價。</div>
+
+          <div class="answer-details">
+            <div class="answer-detail">
+              <div class="name">7-11 標價總和</div>
+              <div class="value" id="sevenListTotalMain">$0</div>
+            </div>
+            <div class="answer-detail">
+              <div class="name">7-11 折扣後總和</div>
+              <div class="value" id="sevenDiscountedMain">$0</div>
+            </div>
+          </div>
+
+          <div class="answer-status" id="mainStatusText">目前不需要額外付款。</div>
         </div>
 
         <div class="cards">
@@ -559,7 +617,6 @@
           </div>
         </div>
 
-        <div class="status ok" id="statusText">目前不需要額外付款。</div>
 
         <div class="actions">
           <button class="btn secondary" id="clearSeven">清除 7-11</button>
@@ -600,13 +657,13 @@
       maxSeven: $("maxSeven"),
       maxHint: $("maxHint"),
       remainingBefore: $("remainingBefore"),
-      sevenListTotal: $("sevenListTotal"),
-      sevenDiscountedInline: $("sevenDiscountedInline"),
+      sevenListTotalMain: $("sevenListTotalMain"),
+      sevenDiscountedMain: $("sevenDiscountedMain"),
       sevenListTotalCard: $("sevenListTotalCard"),
       sevenDiscounted: $("sevenDiscounted"),
       totalUsed: $("totalUsed"),
       finalRemaining: $("finalRemaining"),
-      statusText: $("statusText")
+      mainStatusText: $("mainStatusText")
     };
 
     const defaultState = {
@@ -746,8 +803,8 @@
 
       output.maxSeven.textContent = money(remainingSevenList, 0);
       output.remainingBefore.textContent = money(remainingBefore, 1);
-      output.sevenListTotal.textContent = money(sevenList, 0);
-      output.sevenDiscountedInline.textContent = money(sevenDiscounted, 1);
+      output.sevenListTotalMain.textContent = money(sevenList, 0);
+      output.sevenDiscountedMain.textContent = money(sevenDiscounted, 1);
       output.sevenListTotalCard.textContent = money(sevenList, 0);
       output.sevenDiscounted.textContent = money(sevenDiscounted, 1);
       output.totalUsed.textContent = money(totalUsed, 1);
@@ -764,13 +821,13 @@
       }
 
       if (outOfPocket > 0) {
-        output.statusText.className = "status warn";
-        output.statusText.textContent = `會額外付款 ${money(outOfPocket, 1)}。目前 7-11 標價總和 ${money(sevenList, 0)}，建議控制在 ${money(maxSevenSafe, 0)} 以內。`;
+        output.mainStatusText.className = "answer-status warn";
+        output.mainStatusText.textContent = `需額外付款 ${money(outOfPocket, 1)}，目前已超過今日餐費額度。`;
       } else {
-        output.statusText.className = "status ok";
-        output.statusText.textContent = sevenList > 0
-          ? `安全，7-11 標價總和 ${money(sevenList, 0)} 不需要額外付款，刷完還剩 ${money(finalRemaining, 1)}。`
-          : "目前不需要額外付款。";
+        output.mainStatusText.className = "answer-status";
+        output.mainStatusText.textContent = sevenList > 0
+          ? `安全，不需要額外付款，刷完還剩 ${money(finalRemaining, 1)}。`
+          : `尚未輸入 7-11 商品，目前餐費剩餘 ${money(finalRemaining, 1)}。`;
       }
     }
 
