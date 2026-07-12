@@ -374,6 +374,15 @@
       text-align: center;
     }
 
+    .credit {
+      margin: 14px 0 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
     .install-tip {
       margin-top: 14px;
       padding: 12px 14px;
@@ -599,22 +608,12 @@
             <div class="name">一般餐廳後剩餘</div>
             <div class="value" id="remainingBefore">$0</div>
           </div>
-          <div class="card">
-            <div class="name">7-11 標價總和</div>
-            <div class="value" id="sevenListTotalCard">$0</div>
-          </div>
-          <div class="card">
-            <div class="name">7-11 折後扣款</div>
-            <div class="value" id="sevenDiscounted">$0</div>
-          </div>
+
           <div class="card">
             <div class="name">今日總扣款</div>
             <div class="value" id="totalUsed">$0</div>
           </div>
-          <div class="card">
-            <div class="name">刷完後剩餘</div>
-            <div class="value" id="finalRemaining">$0</div>
-          </div>
+
         </div>
 
 
@@ -632,6 +631,8 @@
     <p class="note">
       資料只存在你的手機瀏覽器 localStorage，不會上傳。每日重置會保留「每日刷餐額度」與「折扣」，只清除今日刷餐輸入。
     </p>
+
+    <div class="credit">Created by Bruce Tsai</div>
   </main>
 
   <script>
@@ -659,10 +660,7 @@
       remainingBefore: $("remainingBefore"),
       sevenListTotalMain: $("sevenListTotalMain"),
       sevenDiscountedMain: $("sevenDiscountedMain"),
-      sevenListTotalCard: $("sevenListTotalCard"),
-      sevenDiscounted: $("sevenDiscounted"),
       totalUsed: $("totalUsed"),
-      finalRemaining: $("finalRemaining"),
       mainStatusText: $("mainStatusText")
     };
 
@@ -805,10 +803,7 @@
       output.remainingBefore.textContent = money(remainingBefore, 1);
       output.sevenListTotalMain.textContent = money(sevenList, 0);
       output.sevenDiscountedMain.textContent = money(sevenDiscounted, 1);
-      output.sevenListTotalCard.textContent = money(sevenList, 0);
-      output.sevenDiscounted.textContent = money(sevenDiscounted, 1);
       output.totalUsed.textContent = money(totalUsed, 1);
-      output.finalRemaining.textContent = money(finalRemaining, 1);
 
       if (normal >= allowance) {
         output.maxHint.textContent = "一般餐廳已經用完今日額度，7-11 再買就會自付。";
